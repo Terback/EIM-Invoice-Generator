@@ -4,6 +4,17 @@ import { InvoiceData, InvoiceItem, RecipientInfo } from './types';
 import { COMPANY_INFO } from './constants';
 import { generatePDF } from './services/pdfService';
 
+import React, { useState, useEffect } from 'react';
+import { InvoiceData, InvoiceItem, RecipientInfo } from './types';
+import { COMPANY_INFO } from './constants';
+import { generatePDF } from './services/pdfService';
+
+// Add this line here (ensure you use the 'raw' github link)
+const EIM_LOGO_URL = "https://github.com/Terback/EIM-Invoice-Generator/blob/main/assets/icon_darkblue.png?raw=true";
+
+const INITIAL_RECIPIENT: RecipientInfo = {
+// ... rest of your code
+
 const INITIAL_RECIPIENT: RecipientInfo = {
   companyName: '',
   address: '',
@@ -157,11 +168,17 @@ const App: React.FC = () => {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 md:mb-12 mt-4 md:mt-8">
           <div className="flex flex-col gap-4 w-full md:w-auto">
-            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-[#0056b3] flex items-center justify-center mx-auto md:mx-0">
-              <svg viewBox="0 0 24 24" className="w-8 h-8 md:w-10 md:h-10 text-white" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M12 2v20M2 12h20M7 7l10 10M7 17L17 7" />
-              </svg>
-            </div>
+            <div className="flex justify-center md:justify-start">
+  <img 
+    src={EIM_LOGO_URL} 
+    alt="EIM Technology Logo" 
+    className="h-12 md:h-16 w-auto object-contain"
+    onError={(e) => {
+      // If the link ever breaks, this keeps the layout from collapsing
+      e.currentTarget.style.display = 'none';
+    }}
+  />
+</div>
             <div className="text-center md:text-left text-sm text-gray-800 space-y-0.5">
               <p className="font-bold text-base">{COMPANY_INFO.name}</p>
               <p>{COMPANY_INFO.address}</p>
