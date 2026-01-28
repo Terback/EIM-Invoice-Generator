@@ -1,35 +1,37 @@
-import { InvoiceData } from '../types';
-import { COMPANY_INFO, LOGO_URL } from '../constants';
+import { InvoiceData } from '../types.ts';
+import { COMPANY_INFO, LOGO_URL } from '../constants.ts';
 
 declare const jspdf: any;
 
 /**
  * Utility to fetch an image from a URL and return it as a base64 data URL.
- * Uses an Image object with crossOrigin set to handle remote assets reliably.
+ * Uses direct raw URL and fetch API with standard CORS handling.
  */
-const getBase64ImageFromUrl = (url: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.setAttribute('crossOrigin', 'anonymous');
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        reject(new Error("Could not get canvas context"));
-        return;
-      }
-      ctx.drawImage(img, 0, 0);
-      const dataURL = canvas.toDataURL('image/png');
-      resolve(dataURL);
-    };
-    img.onerror = (e) => reject(e);
-    img.src = url;
-  });
+const getBase64ImageFromUrl = async (url: string): Promise<string> => {
+  try {
+    const response = await fetch(url, { 
+      mode: 'cors',
+      cache: 'no-cache'
+    });
+    if (!response.ok) throw new Error(`Image fetch failed: ${response.status}`);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("PDF Image Loader Error:", error);
+    throw error;
+  }
 };
 
 export const generatePDF = async (data: InvoiceData) => {
+  if (typeof jspdf === 'undefined') {
+    throw new Error('PDF library not loaded.');
+  }
+
   const { jsPDF } = jspdf;
   const doc = new jsPDF({
     orientation: 'p',
@@ -45,7 +47,6 @@ export const generatePDF = async (data: InvoiceData) => {
   const numberLabel = docTypeLabel === 'INVOICE' ? 'INV#' : 'QUO#';
   let currentY = MARGIN;
 
-  // Helper to draw Footer & Copyright on current page
   const drawPageFooter = (document: any) => {
     const bottomY = pageHeight - 12;
     document.setFontSize(7);
@@ -57,28 +58,28 @@ export const generatePDF = async (data: InvoiceData) => {
     document.setTextColor(0);
   };
 
-  // 1. Logo Handling
+  // 1. Logo
   try {
     if (LOGO_URL) {
       const base64Logo = await getBase64ImageFromUrl(LOGO_URL);
-      // Place logo at top left. 
-      doc.addImage(base64Logo, 'PNG', MARGIN, currentY, 16, 16);
+      // Place logo at top left. 18x18mm as seen in template
+      doc.addImage(base64Logo, 'PNG', MARGIN, currentY, 18, 18);
     }
   } catch (error) {
-    console.warn("Could not load remote logo, using placeholder:", error);
-    // Fallback placeholder
+    console.warn("Using fallback logo due to fetch error");
     doc.setFillColor(0, 86, 179);
-    doc.circle(MARGIN + 8, currentY + 8, 8, 'F');
+    doc.circle(MARGIN + 9, currentY + 9, 9, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(8);
-    doc.text("LOGO", MARGIN + 8, currentY + 9, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text("EIM", MARGIN + 9, currentY + 10, { align: 'center' });
   }
 
-  currentY += 20; // Reserved height for logo header
+  currentY += 22;
 
-  // 2. Company Info (Left)
+  // 2. Company Info
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
+  doc.setFontSize(10.5);
   doc.setTextColor(0, 0, 0);
   doc.text(COMPANY_INFO.name, MARGIN, currentY);
   currentY += 5;
@@ -94,12 +95,12 @@ export const generatePDF = async (data: InvoiceData) => {
   currentY += 4;
   doc.text(`Business Number: ${COMPANY_INFO.businessNumber}`, MARGIN, currentY);
 
-  // 3. Document Header (Right)
+  // 3. Header Details
   const rightX = pageWidth - MARGIN;
-  let headerY = MARGIN + 10;
-  doc.setFontSize(32);
+  let headerY = MARGIN + 12;
+  doc.setFontSize(36);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(200, 200, 200);
+  doc.setTextColor(210, 210, 210);
   doc.text(docTypeLabel, rightX, headerY, { align: 'right' });
 
   headerY += 15;
@@ -107,23 +108,22 @@ export const generatePDF = async (data: InvoiceData) => {
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
   doc.text(`${numberLabel} ${data.invoiceNumber}`, rightX, headerY, { align: 'right' });
-  headerY += 4.5;
+  headerY += 5;
   doc.text(`DATE: ${data.date}`, rightX, headerY, { align: 'right' });
-  headerY += 4.5;
+  headerY += 5;
   doc.text(`DATE DUE: ${data.dateDue}`, rightX, headerY, { align: 'right' });
 
   // 4. Amount Due Box
-  headerY += 10;
+  headerY += 8;
   doc.setDrawColor(180, 180, 180);
-  doc.setLineWidth(0.4);
-  const boxWidth = 60;
-  const boxHeight = 10;
-  doc.rect(rightX - boxWidth, headerY - 6, boxWidth, boxHeight);
-  doc.setFont('helvetica', 'bold');
+  doc.setLineWidth(0.25);
+  const boxWidth = 65;
+  const boxHeight = 11;
+  doc.rect(rightX - boxWidth, headerY - 7, boxWidth, boxHeight);
   doc.setFontSize(11);
   doc.text(`Amount Due: ${currency} ${data.totalDue.toFixed(2)}`, rightX - (boxWidth/2), headerY + 0.5, { align: 'center' });
 
-  currentY = Math.max(currentY + 15, headerY + 10);
+  currentY = Math.max(currentY + 20, headerY + 15);
 
   // 5. Recipients
   const colWidth = (pageWidth - (MARGIN * 2)) / 2;
@@ -132,9 +132,9 @@ export const generatePDF = async (data: InvoiceData) => {
   doc.text('BILLING RECIPIENT', MARGIN, currentY);
   doc.text('SHIPPING RECIPIENT', MARGIN + colWidth, currentY);
   
-  currentY += 6;
+  currentY += 8;
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9.5);
+  doc.setFontSize(9);
   
   const billingContent = [
     data.billingRecipient.companyName,
@@ -152,11 +152,9 @@ export const generatePDF = async (data: InvoiceData) => {
 
   doc.text(shippingContent, MARGIN + colWidth, currentY, { maxWidth: colWidth - 10 });
 
-  const billingLines = doc.splitTextToSize(billingContent, colWidth - 10);
-  const shippingLines = doc.splitTextToSize(shippingContent, colWidth - 10);
-  const maxLines = Math.max(billingLines.length, shippingLines.length);
-  
-  currentY += (maxLines * 4.8) + 8;
+  const bLines = doc.splitTextToSize(billingContent, colWidth - 10).length;
+  const sLines = doc.splitTextToSize(shippingContent, colWidth - 10).length;
+  currentY += (Math.max(bLines, sLines) * 4.5) + 12;
 
   // 6. Items Table
   const tableData = data.items.map(item => [
@@ -173,7 +171,7 @@ export const generatePDF = async (data: InvoiceData) => {
     margin: { left: MARGIN, right: MARGIN },
     styles: { 
       fontSize: 9.5, 
-      cellPadding: 2.5, 
+      cellPadding: 3, 
       textColor: [0, 0, 0], 
       lineColor: [220, 220, 220], 
       lineWidth: 0.1,
@@ -188,14 +186,12 @@ export const generatePDF = async (data: InvoiceData) => {
     },
     columnStyles: {
       0: { halign: 'center', cellWidth: 'auto' },
-      1: { halign: 'center', cellWidth: 30 },
-      2: { halign: 'center', cellWidth: 30 },
-      3: { halign: 'center', cellWidth: 30 }
+      1: { halign: 'center', cellWidth: 35 },
+      2: { halign: 'center', cellWidth: 38 },
+      3: { halign: 'center', cellWidth: 38 }
     },
     theme: 'grid',
-    didDrawPage: () => {
-        drawPageFooter(doc);
-    }
+    didDrawPage: () => drawPageFooter(doc)
   });
 
   currentY = (doc as any).lastAutoTable.finalY;
@@ -204,61 +200,56 @@ export const generatePDF = async (data: InvoiceData) => {
   const SUMMARY_HEIGHT = 65;
   if (currentY + SUMMARY_HEIGHT > pageHeight - MARGIN) {
     doc.addPage();
-    currentY = MARGIN + 5;
+    currentY = MARGIN + 10;
   }
 
-  const labelX = rightX - 55;
-  const drawSummaryRow = (label: string, value: string, isGray = false, isBold = false, isItalic = false) => {
+  const labelX = rightX - 68;
+  const drawSummaryRow = (label: string, value: string, isGray = false, isBold = false) => {
     if (isGray) {
-      doc.setFillColor(248, 250, 253);
-      doc.rect(labelX - 4, currentY, 59, 7, 'F');
+      doc.setFillColor(242, 242, 242);
+      doc.rect(labelX - 4, currentY, 72, 8, 'F');
     }
-    doc.setDrawColor(210, 210, 210);
+    doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.1);
-    doc.line(labelX - 4, currentY, rightX, currentY);
-    doc.line(labelX - 4, currentY + 7, rightX, currentY + 7);
-    doc.line(labelX - 4, currentY, labelX - 4, currentY + 7);
-    doc.line(rightX, currentY, rightX, currentY + 7);
+    doc.rect(labelX - 4, currentY, 72, 8);
+    doc.line(labelX + 42, currentY, labelX + 42, currentY + 8);
 
-    doc.setFont('helvetica', isBold ? 'bold' : (isItalic ? 'italic' : 'normal'));
+    doc.setFont('helvetica', isBold ? 'bold' : 'normal');
     doc.setFontSize(9);
-    doc.setTextColor(isItalic ? 80 : 0);
-    doc.text(label, labelX, currentY + 4.8);
+    doc.setTextColor(isGray ? 100 : 0);
+    doc.text(label, labelX, currentY + 5.2);
     doc.setTextColor(0);
-    doc.text(value, rightX - 2, currentY + 4.8, { align: 'right' });
-    currentY += 7;
+    doc.text(value, rightX - 3, currentY + 5.2, { align: 'right' });
+    currentY += 8;
   };
 
-  const shippingValue = data.shipping > 0 ? `${currency}${data.shipping.toFixed(2)}` : 'N/A';
+  const shipVal = data.shipping > 0 ? `${currency}${data.shipping.toFixed(2)}` : 'N/A';
   drawSummaryRow('SUBTOTAL', `${currency}${data.subtotal.toFixed(2)}`, false, true);
-  drawSummaryRow('SHIPPING', shippingValue, false, true);
-  drawSummaryRow(data.gstLabel, `${currency}${data.gst.toFixed(2)}`, true, false, true);
-  drawSummaryRow(data.pstLabel, `${currency}${data.pst.toFixed(2)}`, true, false, true);
+  drawSummaryRow('SHIPPING', shipVal, false, true);
+  drawSummaryRow(data.gstLabel, `${currency}${data.gst.toFixed(2)}`, true, false);
+  drawSummaryRow(data.pstLabel, `${currency}${data.pst.toFixed(2)}`, true, false);
   drawSummaryRow('TOTAL DUE', `${currency}${data.totalDue.toFixed(2)}`, false, true);
 
-  // 8. Footer Notes
-  const footerStartY = Math.max(currentY + 10, pageHeight - 45);
-  doc.setFontSize(9);
+  // 8. Footer
+  const footerY = Math.max(currentY + 15, pageHeight - 50);
+  doc.setFontSize(9.5);
   doc.setFont('helvetica', 'normal');
-  doc.text('Make all checks payable to ', MARGIN, footerStartY);
+  doc.text('Make all checks payable to ', MARGIN, footerY);
   doc.setFont('helvetica', 'bold');
-  doc.text(COMPANY_INFO.name, MARGIN + 40, footerStartY);
+  doc.text(COMPANY_INFO.name, MARGIN + 43, footerY);
   
   doc.setFont('helvetica', 'normal');
-  doc.text('Interac e-Transfer: ', MARGIN, footerStartY + 5);
+  doc.text('Interac e-Transfer: ', MARGIN, footerY + 5.5);
   doc.setTextColor(0, 86, 179);
-  doc.text('evoinmotion@gmail.com', MARGIN + 28, footerStartY + 5);
+  doc.text('evoinmotion@gmail.com', MARGIN + 30, footerY + 5.5);
   doc.setTextColor(0);
 
-  doc.text('Support POS payment for Credit Card, Alipay and Wechat, payable to EIM Technology', MARGIN, footerStartY + 10);
+  doc.text('Support POS payment for Credit Card, Alipay and Wechat, payable to EIM Technology', MARGIN, footerY + 11);
 
-  // Centered Thank You
-  doc.setFontSize(12);
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bolditalic');
-  doc.text('THANK YOU FOR YOUR BUSINESS!', pageWidth / 2, footerStartY + 24, { align: 'center' });
+  doc.text('THANK YOU FOR YOUR BUSINESS!', pageWidth / 2, footerY + 28, { align: 'center' });
 
-  // Draw final footer info
   drawPageFooter(doc);
-
   doc.save(`${docTypeLabel}_${data.invoiceNumber}.pdf`);
 };

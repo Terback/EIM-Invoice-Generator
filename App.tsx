@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { InvoiceData, InvoiceItem, RecipientInfo } from './types';
-import { COMPANY_INFO, LOGO_URL } from './constants';
-import { generatePDF } from './services/pdfService';
+import { InvoiceData, InvoiceItem, RecipientInfo } from './types.ts';
+import { COMPANY_INFO, LOGO_URL } from './constants.ts';
+import { generatePDF } from './services/pdfService.ts';
 
 const INITIAL_RECIPIENT: RecipientInfo = {
   companyName: '',
@@ -22,7 +22,9 @@ const App: React.FC = () => {
     const due = new Date();
     due.setDate(today.getDate() + 30);
 
-    const dateStr = today.toISOString().split('T')[0].replace(/-/g, '');
+    const dateStr = today.getFullYear().toString() + 
+                    (today.getMonth() + 1).toString().padStart(2, '0') + 
+                    today.getDate().toString().padStart(2, '0');
     const randomSuffix = Math.floor(Math.random() * 100).toString().padStart(2, '0');
 
     return {
@@ -137,7 +139,7 @@ const App: React.FC = () => {
     <div id="eim-form-container" className="min-h-screen p-2 md:p-8 flex flex-col items-center bg-[#f3f4f6] pb-24 md:pb-8">
       <div className="max-w-4xl w-full bg-white shadow-lg p-4 md:p-12 mb-8 relative">
         
-        {/* Document Type Selector - Now responsive sticky at top mobile */}
+        {/* Document Type Selector */}
         <div className="sticky top-0 md:absolute md:top-4 left-1/2 -translate-x-1/2 flex gap-2 md:gap-4 bg-white/90 md:bg-gray-50 p-1 rounded-full border border-gray-200 z-30 shadow-sm backdrop-blur-sm">
           <button 
             onClick={() => handleDocumentTypeChange('INVOICE')}
@@ -156,8 +158,11 @@ const App: React.FC = () => {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 md:mb-12 mt-4 md:mt-8">
           <div className="flex flex-col gap-4 w-full md:w-auto">
-            <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto md:mx-0 overflow-hidden">
-              <img src={LOGO_URL} alt="Logo" className="w-full h-full object-contain" />
+            <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto md:mx-0">
+              <img src={LOGO_URL} alt="Logo" className="w-full h-full object-contain" onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://via.placeholder.com/64/0056b3/ffffff?text=EIM';
+              }} />
             </div>
             <div className="text-center md:text-left text-sm text-gray-800 space-y-0.5">
               <p className="font-bold text-base">{COMPANY_INFO.name}</p>
@@ -170,30 +175,37 @@ const App: React.FC = () => {
 
           <div className="flex flex-col items-center md:items-end gap-2 text-center md:text-right w-full md:w-auto">
             <h2 className="text-4xl md:text-5xl font-light text-gray-300 tracking-wider mb-2 uppercase">{data.documentType}</h2>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs font-bold text-gray-900 w-full max-w-xs md:max-w-none">
-              <span className="text-gray-400 uppercase self-center">{data.documentType === 'INVOICE' ? 'INV#' : 'QUO#'}</span>
-              <input 
-                className="text-right border-b border-gray-100 focus:border-blue-500 outline-none w-full md:w-32 bg-transparent" 
-                value={data.invoiceNumber}
-                onChange={e => setData(prev => ({ ...prev, invoiceNumber: e.target.value }))}
-              />
-              <span className="text-gray-400 uppercase self-center">Date</span>
-              <input 
-                className="text-right border-b border-gray-100 focus:border-blue-500 outline-none w-full md:w-32 bg-transparent" 
-                value={data.date}
-                onChange={e => setData(prev => ({ ...prev, date: e.target.value }))}
-              />
-              <span className="text-gray-400 uppercase self-center">Due</span>
-              <input 
-                className="text-right border-b border-gray-100 focus:border-blue-500 outline-none w-full md:w-32 bg-transparent" 
-                value={data.dateDue}
-                onChange={e => setData(prev => ({ ...prev, dateDue: e.target.value }))}
-              />
+            
+            <div className="flex flex-col gap-2 w-full max-w-[240px] md:max-w-none">
+              <div className="flex items-center justify-end gap-3">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter w-12">{data.documentType === 'INVOICE' ? 'INV#' : 'QUO#'}</span>
+                <input 
+                  className="text-center border border-gray-200 focus:border-blue-500 px-3 py-1 outline-none w-36 bg-white rounded-sm text-xs font-bold" 
+                  value={data.invoiceNumber}
+                  onChange={e => setData(prev => ({ ...prev, invoiceNumber: e.target.value }))}
+                />
+              </div>
+              <div className="flex items-center justify-end gap-3">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter w-12">Date</span>
+                <input 
+                  className="text-center border border-gray-200 focus:border-blue-500 px-3 py-1 outline-none w-36 bg-white rounded-sm text-xs font-bold" 
+                  value={data.date}
+                  onChange={e => setData(prev => ({ ...prev, date: e.target.value }))}
+                />
+              </div>
+              <div className="flex items-center justify-end gap-3">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter w-12">Due</span>
+                <input 
+                  className="text-center border border-gray-200 focus:border-blue-500 px-3 py-1 outline-none w-36 bg-white rounded-sm text-xs font-bold" 
+                  value={data.dateDue}
+                  onChange={e => setData(prev => ({ ...prev, dateDue: e.target.value }))}
+                />
+              </div>
             </div>
             
             {/* Amount Due Box */}
-            <div className="mt-4 md:mt-6 border border-gray-300 px-6 py-3 w-full md:min-w-[200px] text-center bg-gray-50/50">
-              <span className="text-sm font-black text-gray-900 uppercase">Amount Due: <br className="md:hidden" /> {data.currency} {(Number(data.totalDue) || 0).toFixed(2)}</span>
+            <div className="mt-4 md:mt-6 border border-gray-200 px-8 py-4 w-full md:min-w-[280px] text-center bg-white shadow-sm">
+              <span className="text-sm font-black text-gray-900 uppercase tracking-tight">AMOUNT DUE: {data.currency} {(Number(data.totalDue) || 0).toFixed(2)}</span>
             </div>
           </div>
         </div>
@@ -201,7 +213,7 @@ const App: React.FC = () => {
         {/* Recipients */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-8 md:mb-12">
           <div className="space-y-3">
-            <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest border-b pb-1">Billing Recipient</h3>
+            <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest border-b pb-1">BILLING RECIPIENT</h3>
             <input placeholder="Company / Name" className="w-full p-2 text-sm border-gray-200 focus:ring-1 focus:ring-blue-500 outline-none bg-white" value={data.billingRecipient.companyName} onChange={e => setData(prev => ({...prev, billingRecipient: {...prev.billingRecipient, companyName: e.target.value}}))} />
             <textarea placeholder="Address" rows={2} className="w-full p-2 text-sm border-gray-200 focus:ring-1 focus:ring-blue-500 outline-none bg-white" value={data.billingRecipient.address} onChange={e => setData(prev => ({...prev, billingRecipient: {...prev.billingRecipient, address: e.target.value}}))} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -211,7 +223,7 @@ const App: React.FC = () => {
           </div>
           <div className="space-y-3">
             <div className="flex justify-between items-center border-b pb-1">
-              <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Shipping Recipient</h3>
+              <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">SHIPPING RECIPIENT</h3>
               <label className="text-[10px] text-blue-600 font-bold flex items-center gap-1 cursor-pointer">
                 <input type="checkbox" checked={data.shippingSameAsBilling} onChange={e => setData(prev => ({...prev, shippingSameAsBilling: e.target.checked}))} />
                 SAME AS BILLING
@@ -228,30 +240,33 @@ const App: React.FC = () => {
         <div className="mb-8 overflow-x-auto">
           <table className="w-full border-collapse border border-gray-200 text-sm">
             <thead className="bg-white border-b border-gray-200 hidden md:table-header-group">
-              <tr className="text-xs font-bold uppercase text-gray-500">
-                <th className="p-3 border border-gray-200 text-center">Description</th>
-                <th className="p-3 border border-gray-200 text-center w-24">Qty</th>
-                <th className="p-3 border border-gray-200 text-center w-32">Unit Price</th>
-                <th className="p-3 border border-gray-200 text-center w-32">Total</th>
-                <th className="p-1 w-8"></th>
+              <tr className="text-xs font-bold uppercase text-gray-900">
+                <th className="p-3 border border-gray-200 text-center">DESCRIPTION</th>
+                <th className="p-3 border border-gray-200 text-center w-24">TOTAL QTY</th>
+                <th className="p-3 border border-gray-200 text-center w-32">UNIT PRICE</th>
+                <th className="p-3 border border-gray-200 text-center w-32">TOTAL</th>
+                <th className="p-1 w-8 border-none"></th>
               </tr>
             </thead>
             <tbody>
               {data.items.map(item => (
                 <tr key={item.id} className="border-b border-gray-100 md:border-none">
-                  <td className="p-1 border border-gray-200" data-label="Description">
+                  <td className="p-1 border border-gray-200" data-label="DESCRIPTION">
                     <input className="w-full p-2 border-none bg-transparent outline-none focus:bg-gray-50 text-sm" value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} placeholder="Item description" />
                   </td>
-                  <td className="p-1 border border-gray-200" data-label="Qty">
+                  <td className="p-1 border border-gray-200" data-label="TOTAL QTY">
                     <input type="number" className="w-full p-2 border-none bg-transparent text-center outline-none focus:bg-gray-50" value={item.qty} onChange={e => updateItem(item.id, 'qty', e.target.value)} />
                   </td>
-                  <td className="p-1 border border-gray-200" data-label="Price">
-                    <input type="number" className="w-full p-2 border-none bg-transparent text-right outline-none focus:bg-gray-50" value={item.unitPrice} onChange={e => updateItem(item.id, 'unitPrice', e.target.value)} />
+                  <td className="p-1 border border-gray-200" data-label="UNIT PRICE">
+                    <div className="flex items-center px-2">
+                      <span className="text-gray-400 mr-1">{data.currency}</span>
+                      <input type="number" className="w-full p-2 border-none bg-transparent text-right outline-none focus:bg-gray-50" value={item.unitPrice} onChange={e => updateItem(item.id, 'unitPrice', e.target.value)} />
+                    </div>
                   </td>
-                  <td className="p-3 border border-gray-200 text-right font-medium text-gray-700 bg-gray-50/20" data-label="Total">
+                  <td className="p-3 border border-gray-200 text-right font-medium text-gray-700 bg-gray-50/20" data-label="TOTAL">
                     {data.currency}{(Number(item.total) || 0).toFixed(2)}
                   </td>
-                  <td className="p-2 text-center flex md:table-cell justify-center">
+                  <td className="p-2 text-center flex md:table-cell justify-center border-none">
                     <button onClick={() => handleRemoveItem(item.id)} className="text-red-300 hover:text-red-500 transition-colors p-2 text-xl md:text-base">×</button>
                   </td>
                 </tr>
@@ -277,17 +292,17 @@ const App: React.FC = () => {
             <p className="border-l-2 border-blue-100 pl-3">Make all checks payable to <br/><span className="font-bold text-gray-900">{COMPANY_INFO.name}</span></p>
             <p className="border-l-2 border-blue-100 pl-3">Interac e-Transfer: <br/><span className="text-blue-600 font-bold">evoinmotion@gmail.com</span></p>
             <p className="border-l-2 border-blue-100 pl-3">Support POS payment for Credit Card, Alipay and Wechat, payable to EIM Technology</p>
-            <div className="pt-8 text-base md:text-lg font-black text-gray-800 text-center italic tracking-widest w-full">
+            <div className="pt-8 text-base md:text-lg font-black text-gray-800 text-center italic tracking-widest w-full uppercase">
               THANK YOU FOR YOUR BUSINESS!
             </div>
           </div>
 
           <div className="w-full md:w-[320px] order-1 md:order-2">
             <div className="grid grid-cols-2 border border-gray-200 text-[11px] font-bold uppercase overflow-hidden bg-white shadow-sm">
-              <div className="p-3 border-r border-b border-gray-100 text-right text-gray-400">Subtotal</div>
+              <div className="p-3 border-r border-b border-gray-100 text-right text-gray-400">SUBTOTAL</div>
               <div className="p-3 border-b border-gray-100 text-right text-gray-800">{data.currency}{(Number(data.subtotal) || 0).toFixed(2)}</div>
               
-              <div className="p-3 border-r border-b border-gray-100 text-right text-gray-400">Shipping</div>
+              <div className="p-3 border-r border-b border-gray-100 text-right text-gray-400">SHIPPING</div>
               <div className="p-3 border-b border-gray-100 text-right">
                 <input 
                   type="number" 
@@ -298,9 +313,9 @@ const App: React.FC = () => {
                 />
               </div>
 
-              <div className="p-2 border-r border-b border-gray-100 bg-gray-50/50 flex flex-col items-end justify-center">
+              <div className="p-2 border-r border-b border-gray-100 bg-gray-100/50 flex flex-col items-end justify-center">
                 <input 
-                  className="w-full text-right bg-transparent outline-none text-blue-600 italic font-bold mb-1" 
+                  className="w-full text-right bg-transparent outline-none text-gray-500 italic font-bold mb-1" 
                   value={data.gstLabel} 
                   onChange={e => setData(prev => ({ ...prev, gstLabel: e.target.value }))}
                 />
@@ -315,13 +330,13 @@ const App: React.FC = () => {
                   <span>%</span>
                 </div>
               </div>
-              <div className="p-3 border-b border-gray-100 text-right text-gray-600 bg-gray-50/50 flex items-center justify-end font-bold">
+              <div className="p-3 border-b border-gray-100 text-right text-gray-600 bg-gray-100/50 flex items-center justify-end font-bold italic">
                 {data.currency}{(Number(data.gst) || 0).toFixed(2)}
               </div>
               
-              <div className="p-2 border-r border-b border-gray-100 bg-gray-50/50 flex flex-col items-end justify-center">
+              <div className="p-2 border-r border-b border-gray-100 bg-gray-100/50 flex flex-col items-end justify-center">
                 <input 
-                  className="w-full text-right bg-transparent outline-none text-blue-600 italic font-bold mb-1" 
+                  className="w-full text-right bg-transparent outline-none text-gray-500 italic font-bold mb-1" 
                   value={data.pstLabel} 
                   onChange={e => setData(prev => ({ ...prev, pstLabel: e.target.value }))}
                 />
@@ -336,11 +351,11 @@ const App: React.FC = () => {
                   <span>%</span>
                 </div>
               </div>
-              <div className="p-3 border-b border-gray-100 text-right text-gray-600 bg-gray-50/50 flex items-center justify-end font-bold">
+              <div className="p-3 border-b border-gray-100 text-right text-gray-600 bg-gray-100/50 flex items-center justify-end font-bold italic">
                 {data.currency}{(Number(data.pst) || 0).toFixed(2)}
               </div>
 
-              <div className="p-4 border-r border-gray-200 text-right text-gray-900 bg-[#f8fafc] font-black text-xs">Total Due</div>
+              <div className="p-4 border-r border-gray-200 text-right text-gray-900 bg-[#f8fafc] font-black text-xs">TOTAL DUE</div>
               <div className="p-4 text-right text-gray-900 font-black text-base bg-[#f8fafc]">
                 {data.currency}{(Number(data.totalDue) || 0).toFixed(2)}
               </div>
@@ -351,13 +366,13 @@ const App: React.FC = () => {
         {/* Copyright Footer */}
         <div className="mt-12 md:mt-20 flex justify-center md:justify-end w-full border-t border-gray-100 pt-4">
           <div className="text-center md:text-right text-[10px] text-gray-400 space-y-0.5">
-            <p className="font-bold uppercase">Copyright © 2025 by EVO-IN-MOTION TECHNOLOGY LTD. All rights reserved.</p>
+            <p className="font-bold uppercase tracking-tight">Copyright © 2025 by EVO-IN-MOTION TECHNOLOGY LTD. All rights reserved.</p>
             <p className="text-blue-500 font-bold">www.eimtechnology.com</p>
           </div>
         </div>
       </div>
 
-      {/* Floating Action Button - Enhanced for Mobile */}
+      {/* Floating Action Button */}
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-md border-t border-gray-200 md:relative md:bg-transparent md:border-none md:p-0 flex justify-center z-40">
         <button 
           onClick={handleGenerate}
