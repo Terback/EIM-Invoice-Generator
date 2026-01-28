@@ -20,5 +20,5 @@ export const TAX_RATES = {
   PST: 0.07
 };
 
-// Placeholder for Cloud Hosted Logo Link
-export const LOGO_URL = ""; 
+// Cloud Hosted Logo Link - Direct raw link for better compatibility
+export const LOGO_URL = "https://raw.githubusercontent.com/Terback/EIM-Invoice-Generator/main/assets/icon_darkblue.png";

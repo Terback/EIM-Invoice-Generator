@@ -1,19 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { InvoiceData, InvoiceItem, RecipientInfo } from './types';
-import { COMPANY_INFO } from './constants';
+import { COMPANY_INFO, LOGO_URL } from './constants';
 import { generatePDF } from './services/pdfService';
-
-import React, { useState, useEffect } from 'react';
-import { InvoiceData, InvoiceItem, RecipientInfo } from './types';
-import { COMPANY_INFO } from './constants';
-import { generatePDF } from './services/pdfService';
-
-// Add this line here (ensure you use the 'raw' github link)
-const EIM_LOGO_URL = "https://github.com/Terback/EIM-Invoice-Generator/blob/main/assets/icon_darkblue.png?raw=true";
-
-const INITIAL_RECIPIENT: RecipientInfo = {
-// ... rest of your code
 
 const INITIAL_RECIPIENT: RecipientInfo = {
   companyName: '',
@@ -168,17 +156,9 @@ const App: React.FC = () => {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8 md:mb-12 mt-4 md:mt-8">
           <div className="flex flex-col gap-4 w-full md:w-auto">
-            <div className="flex justify-center md:justify-start">
-  <img 
-    src={EIM_LOGO_URL} 
-    alt="EIM Technology Logo" 
-    className="h-12 md:h-16 w-auto object-contain"
-    onError={(e) => {
-      // If the link ever breaks, this keeps the layout from collapsing
-      e.currentTarget.style.display = 'none';
-    }}
-  />
-</div>
+            <div className="w-12 h-12 md:w-16 md:h-16 flex items-center justify-center mx-auto md:mx-0 overflow-hidden">
+              <img src={LOGO_URL} alt="Logo" className="w-full h-full object-contain" />
+            </div>
             <div className="text-center md:text-left text-sm text-gray-800 space-y-0.5">
               <p className="font-bold text-base">{COMPANY_INFO.name}</p>
               <p>{COMPANY_INFO.address}</p>
@@ -293,7 +273,7 @@ const App: React.FC = () => {
 
         {/* Footer Area with Summary */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
-          <div className="text-[11px] text-gray-500 space-y-3 flex-grow max-w-sm order-2 md:order-1">
+          <div className="text-[11px] text-gray-500 space-y-3 flex-grow max-sm order-2 md:order-1">
             <p className="border-l-2 border-blue-100 pl-3">Make all checks payable to <br/><span className="font-bold text-gray-900">{COMPANY_INFO.name}</span></p>
             <p className="border-l-2 border-blue-100 pl-3">Interac e-Transfer: <br/><span className="text-blue-600 font-bold">evoinmotion@gmail.com</span></p>
             <p className="border-l-2 border-blue-100 pl-3">Support POS payment for Credit Card, Alipay and Wechat, payable to EIM Technology</p>

@@ -1,7 +1,33 @@
 import { InvoiceData } from '../types';
-import { COMPANY_INFO } from '../constants';
+import { COMPANY_INFO, LOGO_URL } from '../constants';
 
 declare const jspdf: any;
+
+/**
+ * Utility to fetch an image from a URL and return it as a base64 data URL.
+ * Uses an Image object with crossOrigin set to handle remote assets reliably.
+ */
+const getBase64ImageFromUrl = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute('crossOrigin', 'anonymous');
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        reject(new Error("Could not get canvas context"));
+        return;
+      }
+      ctx.drawImage(img, 0, 0);
+      const dataURL = canvas.toDataURL('image/png');
+      resolve(dataURL);
+    };
+    img.onerror = (e) => reject(e);
+    img.src = url;
+  });
+};
 
 export const generatePDF = async (data: InvoiceData) => {
   const { jsPDF } = jspdf;
@@ -31,18 +57,24 @@ export const generatePDF = async (data: InvoiceData) => {
     document.setTextColor(0);
   };
 
-  // 1. Logo Placeholder (Vector Drawing) - 16mm x 16mm area
-  doc.setFillColor(0, 86, 179);
-  doc.circle(MARGIN + 8, currentY + 8, 8, 'F');
-  doc.setDrawColor(255, 255, 255);
-  doc.setLineWidth(0.5);
-  doc.line(MARGIN + 5, currentY + 6, MARGIN + 11, currentY + 6);
-  doc.line(MARGIN + 5, currentY + 8, MARGIN + 11, currentY + 8);
-  doc.line(MARGIN + 5, currentY + 10, MARGIN + 11, currentY + 10);
-  doc.circle(MARGIN + 6.5, currentY + 8, 1, 'S');
-  doc.circle(MARGIN + 9.5, currentY + 6, 1, 'S');
+  // 1. Logo Handling
+  try {
+    if (LOGO_URL) {
+      const base64Logo = await getBase64ImageFromUrl(LOGO_URL);
+      // Place logo at top left. 
+      doc.addImage(base64Logo, 'PNG', MARGIN, currentY, 16, 16);
+    }
+  } catch (error) {
+    console.warn("Could not load remote logo, using placeholder:", error);
+    // Fallback placeholder
+    doc.setFillColor(0, 86, 179);
+    doc.circle(MARGIN + 8, currentY + 8, 8, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.text("LOGO", MARGIN + 8, currentY + 9, { align: 'center' });
+  }
 
-  currentY += 20; // Correct reserved height for logo header
+  currentY += 20; // Reserved height for logo header
 
   // 2. Company Info (Left)
   doc.setFont('helvetica', 'bold');
