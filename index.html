@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EIM Invoice Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* Scoped CSS for Elementor/CMS Compatibility */
+        #eim-form-container {
+            --brand-primary: #0056b3;
+            --brand-secondary: #004494;
+            --border-color: #e5e7eb;
+            --bg-gray: #f9fafb;
+        }
+
+        #eim-form-container input, 
+        #eim-form-container textarea, 
+        #eim-form-container table, 
+        #eim-form-container td, 
+        #eim-form-container th {
+            border: 1px solid var(--border-color) !important;
+        }
+
+        #eim-form-container input:focus, 
+        #eim-form-container textarea:focus {
+            outline: none !important;
+            border-color: var(--brand-primary) !important;
+            box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.1) !important;
+        }
+
+        /* Mobile Table Stacking */
+        @media (max-width: 768px) {
+            #eim-form-container thead {
+                display: none !important;
+            }
+            #eim-form-container tr {
+                display: block !important;
+                margin-bottom: 1rem !important;
+                border: 2px solid var(--border-color) !important;
+                border-radius: 0.5rem !important;
+                background: white !important;
+                overflow: hidden !important;
+            }
+            #eim-form-container td {
+                display: block !important;
+                text-align: right !important;
+                padding-left: 50% !important;
+                position: relative !important;
+                border-bottom: 1px solid var(--border-color) !important;
+            }
+            #eim-form-container td::before {
+                content: attr(data-label);
+                position: absolute !important;
+                left: 1rem !important;
+                width: 45% !important;
+                text-align: left !important;
+                font-weight: 600 !important;
+                color: #4b5563 !important;
+            }
+            #eim-form-container td:first-child {
+                text-align: center !important;
+                padding-left: 1rem !important;
+                background-color: var(--bg-gray) !important;
+                font-weight: bold !important;
+            }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>

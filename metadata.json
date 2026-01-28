@@ -1,0 +1,5 @@
+{
+  "name": "EIM Technology Invoice Generator",
+  "description": "A professional invoice generation tool for EVO IN MOTION Technology Ltd. featuring automatic calculations, billing/shipping management, and high-fidelity PDF export.",
+  "requestFramePermissions": []
+}
