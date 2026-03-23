@@ -78,7 +78,7 @@ npm run dev
 ### 3. Open in browser
 
 ```
-http://localhost:3000
+invoice.eimtechnology.com
 ```
 
 ---
@@ -87,9 +87,11 @@ http://localhost:3000
 
 1. Enter customer information
 2. Add invoice items (name, quantity, price)
-3. Review calculated totals
-4. Click “Generate PDF”
-5. Download and send
+3. Adding shipment if needed
+4. Review calculated totals
+5. implement tax if required (for example BC has 5% GST and 7% PST)
+6. Click “Generate PDF”
+7. Download and send
 
 The entire workflow is designed to be completed in seconds.
 
