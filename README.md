@@ -1,5 +1,5 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="[https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6](https://github.com/Terback/Images/blob/main/logo/logo%20color%20palette-website-01.png?raw=true)" />
+<img width="1200" height="475" alt="EIM Banner" src="[https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6](https://github.com/Terback/Images/blob/main/logo/logo%20color%20palette-website-01.png?raw=true)" />
 </div>
 
 This
