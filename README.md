@@ -2,7 +2,10 @@
 <img width="1200" height="475" alt="EIM Banner" src="[https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6](https://github.com/Terback/Images/blob/main/logo/logo%20color%20palette-website-01.png?raw=true)" />
 </div>
 
-This
+<div align="center">
+  <img width="1200" height="475" alt="EIM Banner"
+       src="https://github.com/Terback/Images/blob/main/logo/logo%20color%20palette-website-01.png?raw=true" />
+</div>
 
 
 1. Install dependencies:
