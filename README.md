@@ -4,6 +4,7 @@
 </div>
 
 
+
 # EIM Invoice Generator
 
 A lightweight, browser-based invoice generator designed for fast, structured, and professional invoice creation. Built specifically for hardware-oriented workflows where speed, clarity, and exportability matter.
