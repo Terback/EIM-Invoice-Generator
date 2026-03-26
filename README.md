@@ -146,6 +146,8 @@ Designed for daily operational use, not theoretical completeness.
 
 ---
 
+
+
 ## Use Cases
 
 * Hardware product sales
